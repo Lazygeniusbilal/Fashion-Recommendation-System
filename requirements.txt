@@ -1,0 +1,51 @@
+import streamlit as st
+import cv2
+import numpy as np
+from scipy.spatial.distance import cosine
+import os
+import matplotlib.pyplot as plt
+import pickle
+
+# Load the recommendation_system function
+with open("fashion_recommendation_system.pkl", "rb") as f:
+    recommendation_system = pickle.load(f)
+
+# Load precomputed embeddings
+with open("embeddings.pkl", "rb") as f:
+    embeddings = pickle.load(f)
+
+# Placeholder for generating embeddings (replace this with your actual function)
+def generate_embeddings(images):
+    # Replace this with the actual function that generates embeddings
+    embeddings = np.random.rand(len(images), 512)  
+    return embeddings
+
+# Specify the directory containing fashion images
+images_dir = "/content/women_fashion"  # Update to the correct path
+
+# Get the list of all image files in the directory
+fashion_files = [os.path.join(images_dir, file) for file in os.listdir(images_dir) if file.endswith(('jpg', 'jpeg', 'png'))]
+
+# Streamlit app layout
+st.title("Fashion Recommendation System")
+
+uploaded_file = st.file_uploader("Choose an image...", type="jpg")
+if uploaded_file is not None:
+    # Save the uploaded file to a temporary location
+    if not os.path.exists("temp"):
+        os.makedirs("temp")
+    image_path = os.path.join("temp", uploaded_file.name)
+    with open(image_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.image(image_path, caption='Uploaded Image.', use_column_width=True)
+    st.write("")
+    st.write("Finding similar images...")
+
+    # Run the recommendation system
+    top_indices = recommendation_system(image_path, embeddings, fashion_files)
+
+    st.write("Top similar images:")
+    for i, index in enumerate(top_indices):
+        img_path = fashion_files[index]
+        st.image(img_path, caption=f"Similar Image {i+1}", use_column_width=True)
